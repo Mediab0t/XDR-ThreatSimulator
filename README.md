@@ -3,7 +3,7 @@
 A Palo Alto Networks Cortex XDR Threat Simulator <br>
 **This is early development software, not for production use!**
 
-###**This program may be destructive to your system, you have been warned!**
+###This program may be destructive to your system, you have been warned!
 
 This program has been validated using Python 3.9.1 on Windows 10 20H2 (64-bit) with Powershell 5 onwards.
 
