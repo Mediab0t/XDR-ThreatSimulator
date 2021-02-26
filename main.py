@@ -1,4 +1,5 @@
 import base64
+import ctypes
 import ipaddress
 import os
 import platform
@@ -937,6 +938,16 @@ def main():
 	print('OS Version:               ', str(env['os_version']))
 	print('Python Runtime:           ', str(env['python_ver']))
 	print('Execution Timeout:        ', str(env['timeout']), 'second(s)')
+	print(sep)
+	
+	if win32_is_admin is True:
+		print('Running with administrator privileges')
+	else:
+		print('[WARNING] This program is not running with administrator privileges')
+		print('[WARNING] Some functionality may be impacted or not work correctly!')
+		
+	print(sep + '\n')
+	
 	time.sleep(5)
 	
 	try:
@@ -972,6 +983,13 @@ if __name__ in ['__main__', 'builtin', 'builtins']:
 	''' Perform initial setup '''
 	sep = 128 * '-'
 	cwd = os.getcwd()
+	
+	win32_is_admin = ctypes.windll.shell32.IsUserAnAdmin()
+	
+	if win32_is_admin == 0:
+		win32_is_admin = False
+	else:
+		win32_is_admin = True
 	
 	res_dir = {
 		'dns': cwd + '\\res\\dns\\',
@@ -1018,21 +1036,21 @@ if __name__ in ['__main__', 'builtin', 'builtins']:
 	urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 	
 	banner = """
-██╗  ██╗██████╗ ██████╗     ████████╗██╗  ██╗██████╗ ███████╗ █████╗ ████████╗███████╗██╗███╗   ███╗
-╚██╗██╔╝██╔══██╗██╔══██╗    ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔════╝██║████╗ ████║
- ╚███╔╝ ██║  ██║██████╔╝       ██║   ███████║██████╔╝█████╗  ███████║   ██║   ███████╗██║██╔████╔██║
- ██╔██╗ ██║  ██║██╔══██╗       ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══██║   ██║   ╚════██║██║██║╚██╔╝██║
-██╔╝ ██╗██████╔╝██║  ██║       ██║   ██║  ██║██║  ██║███████╗██║  ██║   ██║   ███████║██║██║ ╚═╝ ██║
-╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚═╝     ╚═╝
+ ██╗  ██╗██████╗ ██████╗     ████████╗██╗  ██╗██████╗ ███████╗ █████╗ ████████╗███████╗██╗███╗   ███╗
+ ╚██╗██╔╝██╔══██╗██╔══██╗    ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔══██╗╚══██╔══╝██╔════╝██║████╗ ████║
+  ╚███╔╝ ██║  ██║██████╔╝       ██║   ███████║██████╔╝█████╗  ███████║   ██║   ███████╗██║██╔████╔██║
+  ██╔██╗ ██║  ██║██╔══██╗       ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══██║   ██║   ╚════██║██║██║╚██╔╝██║
+ ██╔╝ ██╗██████╔╝██║  ██║       ██║   ██║  ██║██║  ██║███████╗██║  ██║   ██║   ███████║██║██║ ╚═╝ ██║
+ ╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝╚═╝     ╚═╝
                                                                                                     """
-	
+
 	if 'Windows' in env['os_system']:
 		env['win_nt'] = True
 		main()
 	else:
 		print(sep)
-		print('XDR Threat Simulator')
+		print(banner)
 		print(sep)
 		print('[ERROR] This software is currently only available for the Windows operating system')
 		print(sep)
-		main()
+		sys.exit(1)
