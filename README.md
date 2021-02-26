@@ -1,7 +1,5 @@
 # XDR-ThreatSimulator
 
----
-
 A Palo Alto Networks Cortex XDR Threat Simulator <br>
 **This is early development software, not for production use!**
 ###**This program may be destructive to your system, you have been warned!**
