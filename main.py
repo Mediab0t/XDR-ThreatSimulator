@@ -146,8 +146,8 @@ def exec_http_lookup(entry, ps):
 			
 			if ps is True:
 				cmd = 'powershell.exe -exec bypass -C "try {$r = Invoke-WebRequest -UseBasicParsing -Uri ' + url + ' -TimeoutSec 1;'
-				cmd += 'Write-Host "[HTTP] Successfully connected to ' + url + '"} catch {'
-				cmd += 'Write-Host "[HTTP] Could not connect to ' + url + '" }"'
+				cmd += 'Write-Host " `n[HTTP] Successfully connected to ' + url + '"} catch {'
+				cmd += 'Write-Host " `n[HTTP] Could not connect to ' + url + '" }"'
 			else:
 				# TODO: Add curl commands
 				pass
@@ -383,15 +383,16 @@ def scenario_02_ioc_http_lookup(ps=True):
 		
 		for ioc_file in ioc_files:
 			with open(res_dir['ioc'] + ioc_file) as f:
-				print(sep)
-				print(ioc_file)
 				
 				entries = [line.rstrip().lower() for line in f]
 				count = len(entries)
-				entries_all.append(entries)
 				
-				print('Entries:', str(count))
-				print(sep)
+				for entry in entries:
+					entries_all.append(entry)
+				
+				print(ioc_file, 'has:', str(count), 'entries')
+		
+		print(sep)
 		
 		threads = []
 		with ThreadPoolExecutor(max_workers=env['max_threads']) as executor:
@@ -990,14 +991,15 @@ def menu():
 			scenario_01_ioc_dns_lookup()
 			
 		elif s == 2:
-			x = input('Use Powershell for execution? [Y/N]: ').lower()
+			# TODO: Implement logic to handle PS vs Curl operational modes
+			# x = input('Use Powershell for execution? [Y/N]: ').lower()
+			#
+			# if 'y' in x:
+			# 	ps = True
+			# else:
+			# 	ps = False
 			
-			if 'y' in x:
-				ps = True
-			else:
-				ps = False
-			
-			scenario_02_ioc_http_lookup(ps)
+			scenario_02_ioc_http_lookup()
 			
 		elif s == 3:
 			x = input('Number of random domains to generate: ')
