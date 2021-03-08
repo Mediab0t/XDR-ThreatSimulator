@@ -3,6 +3,7 @@ import ctypes
 import ipaddress
 import os
 import platform
+import prettytable
 import random
 import requests
 import string
@@ -38,7 +39,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 __author__ = "Matt Smith <https://github.com/Mediab0t/>"
 __copyright__ = "Copyright 2021, Palo Alto Networks, Inc."
 __license__ = "GPLv3"
-__version__ = "0.9.0"
+__version__ = "0.9.4"
 __status__ = "alpha-milestone-01"
 __repository__ = "https://github.com/Mediab0t/xdr-threatsimulator"
 
@@ -283,7 +284,7 @@ def exec_convert_bytes(input_bytes):
 ''' Scenarios '''
 
 
-def scenario_00_template():
+def scenario_template():
 	"""
 	Scenario 00 - Template
 	"""
@@ -297,6 +298,28 @@ def scenario_00_template():
 	print(sep)
 	exec_calc_exec_time(start)
 	print(sep)
+
+
+def scenario_00_runtime_dump():
+	"""
+	Dumps the runtime variables
+	"""
+	print('\n' + sep)
+	print('Resource Directory [DNS]: ', str(res_dir['dns']))
+	print('Resource Directory [IOC]: ', str(res_dir['ioc']))
+	print('Resource Directory [MAL]: ', str(res_dir['malware']))
+	print('Resource Directory [TEMP]:', str(res_dir['temp']))
+	print('CPU Architecture:         ', str(env['os_machine']))
+	print('CPU Cores:                ', str(env['cpu_cores']))
+	print('Max Python Worker Threads:', str(env['max_threads']))
+	print('Execution Timeout:        ', str(env['timeout']), 'second(s)')
+	print('Selected DNS Server:      ', str(env['dns_server']))
+	print('Hostname:                 ', str(env['os_name']))
+	print('OS Release:               ', str(env['os_release']))
+	print('OS System:                ', str(env['os_system']))
+	print('OS Version:               ', str(env['os_version']))
+	print('Python Runtime:           ', str(env['python_ver']))
+	print('Win32 Administrator:      ', str(env['win_nt_admin']))
 
 
 def scenario_01_ioc_dns_lookup():
@@ -486,7 +509,7 @@ def scenario_05_rec_local(cleanup=True, f_bat='recon.bat', f_out='recon_out.txt'
 	start = time.time()
 	
 	print(sep)
-	print("Scenario 04 - Local System Reconnaissance")
+	print("Scenario 05 - Local System Reconnaissance")
 	print(sep)
 	print('This scenario will perform enumeration and reconnaissance of the local system')
 	print(sep + '\n')
@@ -620,7 +643,7 @@ def scenario_06_rec_network(network, ports=None):
 	start = time.time()
 	
 	print(sep)
-	print("Scenario 05 - Network Reconnaissance")
+	print("Scenario 06 - Network Reconnaissance")
 	print('This scenario will perform reconnaissance of the designated subnet using TCP port scans')
 	print(sep)
 	
@@ -847,7 +870,7 @@ def scenario_12_babyshark_c2():
 	start = time.time()
 	
 	print(sep)
-	print('Scenario 12 - Emulate Babyshark C2')
+	print('Scenario 12 - Emulate Babyshark C2 Traffic')
 	print(sep)
 	
 	try:
@@ -912,66 +935,159 @@ def scenario_13_memory_hog(multiplier, s=10):
 	print(sep)
 
 
-''' Main '''
+''' Main and Menu '''
 
+
+def menu():
+	"""
+	Handles the menu
+	"""
+	
+	# Print header
+	print('\n' + sep)
+	print(banner)
+	print(sep)
+	print('Release:', __version__ + '-' + __status__)
+	print('Author:', __author__)
+	print('This software is available under the', __license__, 'license')
+	print(sep + '\n')
+	
+	# Create table handler
+	x = prettytable.PrettyTable()
+	x.field_names = ['ID', 'Scenario']
+	x.sortby = 'ID'
+	x.align['ID'] = 'm'
+	x.align['Scenario'] = 'l'
+	
+	# Add rows to table and print the output
+	x.add_row([00, 'Scenario 0 - Runtime Environment Variables'])
+	x.add_row([1, 'Scenario 1 - Perform nslookup queries for each entry found in the ioc directory'])
+	x.add_row([2, 'Scenario 2 - Perform powershell or curl queries for each entry found in the ioc directory'])
+	x.add_row([3, 'Scenario 3 - Domain Generating Algorithm\'s (DGA)'])
+	x.add_row([4, 'Scenario 4 - Attempt to exfiltrate data via DNS'])
+	x.add_row([5, 'Scenario 5 - Local System Reconnaissance'])
+	x.add_row([6, 'Scenario 6 - Network Reconnaissance (TCP Port Scanning)'])
+	x.add_row([7, 'Scenario 7 - Download and Execute Mimikatz from Powershell Memory Space'])
+	x.add_row([8, 'Scenario 8 - Undetermined'])
+	x.add_row([9, 'Scenario 9 - Download and execute the WildFire test file(s)'])
+	x.add_row([10, 'Scenario 10 - Execute Microsoft VBScript to trigger XDR BTP Module(s)'])
+	x.add_row([11, 'Scenario 11 - Create random files in the temp directory with random sizes'])
+	x.add_row([12, 'Scenario 12 - Emulate Babyshark C2 Traffic'])
+	x.add_row([13, 'Scenario 13 - Memory Hog, attempt to occupy large chunks of system memory'])
+	x.add_row([99, 'Exit Program'])
+	print(x.get_string(title='Available Scenarios') + '\n')
+	
+	# Catch user input
+	s = input('Please select a scenario ID to execute: ')
+	
+	try:
+		s = int(s)
+		
+		if s == 0:
+			scenario_00_runtime_dump()
+			
+		elif s == 1:
+			scenario_01_ioc_dns_lookup()
+			
+		elif s == 2:
+			x = input('Use Powershell for execution? [Y/N]: ').lower()
+			
+			if 'y' in x:
+				ps = True
+			else:
+				ps = False
+			
+			scenario_02_ioc_http_lookup(ps)
+			
+		elif s == 3:
+			x = input('Number of random domains to generate: ')
+			
+			try:
+				x = int(x)
+				scenario_03_dns_dga(x)
+			except ValueError:
+				print('[ERROR] Please enter an integer number!')
+			
+		elif s == 4:
+			scenario_04_dns_exfiltrate()
+			
+		elif s == 5:
+			# TODO: Implement check for True/False for cleanup operations
+			scenario_05_rec_local(False)
+			
+		elif s == 6:
+			x = input('Please enter the subnet to scan in CIDR (e.g 192.168.1.0/24) notation: ')
+			
+			# Validation of x (input) happens within the scenario
+			scenario_06_rec_network(x)
+			
+		elif s == 7:
+			scenario_07_mimikatz_ps()
+			
+		elif s == 8:
+			# No scenario 08 exists yet, loop back to menu
+			print('Scenario 08 is not implemented yet!')
+			
+		elif s == 9:
+			x = input('Number of WildFire Test Files to download and execute: ')
+			
+			try:
+				x = int(x)
+				# TODO: Add additional prompts to handle ssl and powershell parameters
+				scenario_09_wf_test(x, False, False)
+			except ValueError:
+				print('[ERROR] Please enter an integer number!')
+			
+		elif s == 10:
+			scenario_10_btp_vbs()
+			
+		elif s == 11:
+			x = input('Number of random files to generate: ')
+			
+			try:
+				x = int(x)
+				scenario_11_create_temp_files(x, random.randint(64000, 1073741824))
+			except ValueError:
+				print('[ERROR] Please enter an integer number!')
+				
+		elif s == 12:
+			scenario_12_babyshark_c2()
+			
+		elif s == 13:
+			x = input('Number of gigabytes of system memory to try occupy: ')
+			
+			try:
+				x = int(x)
+				scenario_13_memory_hog(x)
+			except ValueError:
+				print('[ERROR] Please enter an integer number!')
+				
+		elif s == 99:
+			exec_calc_exec_time(global_start)
+			print(sep)
+			sys.exit(0)
+				
+		else:
+			print(sep)
+			print('[ERROR] Scenario is not implemented, please try again')
+		
+		del x
+		time.sleep(1)
+		menu()
+	
+	except ValueError:
+		print(sep)
+		print('[ERROR] Please enter an integer for ID!')
+		menu()
+	
 
 def main():
 	"""
 	Main Function
 	"""
 	
-	print(sep)
-	print(banner)
-	print('Release:', __version__ + '-' + __status__)
-	print('Author:', __author__)
-	print('This software is available under the', __license__, 'license')
-	print(sep)
-	print('Resource Directory [DNS]: ', str(res_dir['dns']))
-	print('Resource Directory [IOC]: ', str(res_dir['ioc']))
-	print('Resource Directory [MAL]: ', str(res_dir['malware']))
-	print('CPU Architecture:         ', str(env['os_machine']))
-	print('CPU Cores:                ', str(env['cpu_cores']))
-	print('Max Python Worker Threads:', str(env['max_threads']))
-	print('Hostname:                 ', str(env['os_name']))
-	print('OS Release:               ', str(env['os_release']))
-	print('OS System:                ', str(env['os_system']))
-	print('OS Version:               ', str(env['os_version']))
-	print('Python Runtime:           ', str(env['python_ver']))
-	print('Execution Timeout:        ', str(env['timeout']), 'second(s)')
-	print(sep)
-	
-	if win32_is_admin is True:
-		print('Running with administrator privileges')
-	else:
-		print('[WARNING] This program is not running with administrator privileges')
-		print('[WARNING] Some functionality may be impacted or not work correctly!')
-		
-	print(sep + '\n')
-	
-	time.sleep(5)
-	
 	try:
-		start = time.time()
-		
-		scenario_01_ioc_dns_lookup()
-		scenario_02_ioc_http_lookup(True)
-		scenario_03_dns_dga(128)
-		scenario_04_dns_exfiltrate()
-		scenario_05_rec_local(False)
-		scenario_06_rec_network('172.17.0.0/24')
-		scenario_07_mimikatz_ps()
-		# scenario_08_undetermined()
-		scenario_09_wf_test(32, False, False)
-		# scenario_10_btp_vbs()
-		scenario_11_create_temp_files(8, random.randint(64000, 1073741824))
-		scenario_12_babyshark_c2()
-		scenario_13_memory_hog(4)
-		
-		print('\n\n' + sep)
-		exec_calc_exec_time(start)
-		print(sep)
-		input('\nPress any key to exit...')
-		sys.exit(0)
+		menu()
 	
 	except KeyboardInterrupt:
 		print('\n\nTerminating process...')
@@ -981,15 +1097,9 @@ def main():
 if __name__ in ['__main__', 'builtin', 'builtins']:
 	
 	''' Perform initial setup '''
+	global_start = time.time()
 	sep = 128 * '-'
 	cwd = os.getcwd()
-	
-	win32_is_admin = ctypes.windll.shell32.IsUserAnAdmin()
-	
-	if win32_is_admin == 0:
-		win32_is_admin = False
-	else:
-		win32_is_admin = True
 	
 	res_dir = {
 		'dns': cwd + '\\res\\dns\\',
@@ -1046,6 +1156,15 @@ if __name__ in ['__main__', 'builtin', 'builtins']:
 
 	if 'Windows' in env['os_system']:
 		env['win_nt'] = True
+		win32_is_admin = ctypes.windll.shell32.IsUserAnAdmin()
+		
+		# TODO: Refactor this into the env dict
+		if win32_is_admin == 0:
+			env['win_nt_admin'] = False
+		else:
+			env['win_nt_admin'] = True
+			
+		del win32_is_admin
 		main()
 	else:
 		print(sep)
